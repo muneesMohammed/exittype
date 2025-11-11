@@ -131,19 +131,19 @@ class ExitTypeGeneratorApp:
         c.setFont("Verdana", 10)
 
         field_positions = {
-            "Inspection No": (4.2 * inch, height - 1.8 * inch),
-            "Exporter": (-0.9 * inch, height - 2.1 * inch),
-            "Inspection Date": (4.2 * inch, height - 2.1 * inch),
-            "Bill No": (-1.1 * inch, height - 3.0 * inch),
-            "BOE Date": (1.5 * inch, height - 3.0 * inch),
-            "Manifest": (4.1 * inch, height - 3.0 * inch),
-            "Country of Origin": (-1.1 * inch, height - 3.6 * inch),
-            "Point of Exit": (0 * inch, height - 3.6 * inch),
-            "Destination": (4.1 * inch, height - 3.6 * inch),
-            "Quantity": (-1.1 * inch, height - 5.4 * inch),
-            "Total Quantity": (-0.5 * inch, height - 6.5 * inch),
-            "Total Weight": (2.0 * inch, height - 6.5 * inch),
-            "Container/Vehicle No": (-1.1 * inch, height - 7.3 * inch),
+            "Inspection No": (4.7 * inch, height - 1.4 * inch),
+            "Exporter": (-0.88 * inch, height - 1.7 * inch),
+            "Inspection Date": (4.7 * inch, height - 2.1 * inch),
+            "Bill No": (-1.3 * inch, height - 2.9 * inch),
+            "BOE Date": (1.7 * inch, height - 2.9 * inch),
+            "Manifest": (4.1 * inch, height - 2.9 * inch),
+            "Country of Origin": (-1.1 * inch, height - 3.7 * inch),
+            "Point of Exit": (1.5 * inch, height - 3.7 * inch),
+            "Destination": (4.32 * inch, height - 3.7 * inch),
+            "Quantity": (-1.5 * inch, height - 5.5 * inch),
+            "Total Quantity": (-0.85 * inch, height - 7.15 * inch),
+            "Total Weight": (1.7 * inch, height - 7.15 * inch),
+            "Container/Vehicle No": (-1.2 * inch, height - 7.9 * inch),
         }
 
         # Draw fields
@@ -162,7 +162,7 @@ class ExitTypeGeneratorApp:
 
         # Description block
         desc_x = 1 * inch
-        desc_y = height - 4.1 * inch
+        desc_y = height - 4.8 * inch
         # c.drawString(desc_x, desc_y, "Description:")
         # c.setFont("Verdana-Bold", 10)
 
@@ -171,7 +171,7 @@ class ExitTypeGeneratorApp:
 
         y_offset = desc_y - 0.3 * inch
         for line in desc_lines:
-            c.drawString(desc_x + 1.3 * inch, y_offset, line)
+            c.drawString(desc_x + 1.1 * inch, y_offset, line)
             y_offset -= 0.25 * inch
 
         c.save()
