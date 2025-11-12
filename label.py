@@ -42,8 +42,8 @@ class ExitTypeGeneratorApp:
         # Labels list
         labels = [
             "Inspection No", "Exporter", "Inspection Date", "Bill No", "BOE Date",
-            "Manifest", "Country of Origin", "Point of Exit", "Destination",
-            "Quantity", "Total Quantity", "Total Weight", "Container/Vehicle No"
+            "Air way Bill NO", "Country of Origin", "Point of Exit", "Destination",
+            "Quantity", "Total Quantity", "Total Weight", "Container/Vehicle No", "Custom Seal NO"
         ]
 
         self.entries = {}
@@ -54,7 +54,7 @@ class ExitTypeGeneratorApp:
                 .grid(row=i, column=0, sticky="e", padx=10, pady=5)
 
             # Exporter and Bill No are multi-line text boxes
-            if label_text in ["Exporter", "Bill No"]:
+            if label_text in ["Exporter", "Bill No", "Quantity", "Total Quantity"]:
                 entry = tk.Text(self.form_frame, width=45, height=3, font=("Arial", 10))
             else:
                 entry = tk.Entry(self.form_frame, width=45)
@@ -131,32 +131,33 @@ class ExitTypeGeneratorApp:
         c.setFont("Verdana", 10)
 
         field_positions = {
-            "Inspection No": (4.7 * inch, height - 1.4 * inch),
-            "Exporter": (-0.88 * inch, height - 2 * inch),
-            "Inspection Date": (4.65 * inch, height - 2.1 * inch),
-            "Bill No": (-1.3 * inch, height - 3 * inch),
-            "BOE Date": (1.7 * inch, height - 3 * inch),
-            "Manifest": (4.05 * inch, height - 3 * inch),
+            "Inspection No": (4.7 * inch, height - 1.43 * inch),
+            "Exporter": (-0.89 * inch, height - 2.1 * inch),
+            "Inspection Date": (4.6 * inch, height - 2.1 * inch),
+            "Bill No": (-1.3 * inch, height - 3.08 * inch),
+            "BOE Date": (1.65 * inch, height - 3.08 * inch),
+            "Air way Bill NO": (4.05 * inch, height - 3.08 * inch),
             "Country of Origin": (-1.2 * inch, height - 3.75 * inch),
-            "Point of Exit": (1.5 * inch, height - 3.75 * inch),
+            "Point of Exit": (1.4 * inch, height - 3.75 * inch),
             "Destination": (4.35 * inch, height - 3.75 * inch),
             "Quantity": (-1.5 * inch, height - 5.5 * inch),
-            "Total Quantity": (-0.86 * inch, height - 7.2 * inch),
-            "Total Weight": (1.7 * inch, height - 7.2 * inch),
-            "Container/Vehicle No": (-1.2 * inch, height - 8 * inch),
+            "Total Quantity": (-0.87 * inch, height - 7.25 * inch),
+            "Total Weight": (1.7 * inch, height - 7.25 * inch),
+            "Container/Vehicle No": (-1.2 * inch, height - 8.1 * inch),
+            "Custom Seal NO": (1.7 * inch, height - 8.1 * inch),
         }
 
         # Draw fields
         for key, (x, y) in field_positions.items():
             value = data.get(key, "")
-            c.setFont("Verdana-Bold", 10)
+            c.setFont("Verdana", 10)
 
-            if key in ["Exporter", "Bill No"]:
+            if key in ["Exporter", "Bill No","Quantity", "Total Quantity"]:
                 lines = value.splitlines()
                 y_offset = 0
                 for line in lines:
                     c.drawString(x + 1.8 * inch, y - y_offset, line)
-                    y_offset += 0.25 * inch
+                    y_offset += 0.15 * inch
             else:
                 c.drawString(x + 1.8 * inch, y, value)
 
