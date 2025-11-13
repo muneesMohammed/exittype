@@ -13,7 +13,7 @@ class ExitTypeGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Exit Type Generator")
-        self.root.geometry("600x750")
+        self.root.geometry("700x750")
         self.root.configure(bg="#f4f6f9")
 
         # Register Verdana fonts
@@ -50,22 +50,22 @@ class ExitTypeGeneratorApp:
 
         # Create form entries
         for i, label_text in enumerate(labels):
-            tk.Label(self.form_frame, text=label_text + ":", font=("Arial", 10), bg="#f4f6f9") \
+            tk.Label(self.form_frame, text=label_text + ":", font=("Arial", 10, "bold"), bg="#f4f6f9") \
                 .grid(row=i, column=0, sticky="e", padx=10, pady=5)
 
             # Exporter and Bill No are multi-line text boxes
             if label_text in ["Exporter", "Bill No", "Quantity", "Total Quantity"]:
-                entry = tk.Text(self.form_frame, width=45, height=3, font=("Arial", 10))
+                entry = tk.Text(self.form_frame, width=45, height=2, font=("Arial", 10))
             else:
-                entry = tk.Entry(self.form_frame, width=45)
+                entry = tk.Entry(self.form_frame, width=52)
 
             entry.grid(row=i, column=1, padx=10, pady=5)
             self.entries[label_text] = entry
 
         # Description (multi-line)
-        desc_label = tk.Label(self.form_frame, text="Description:", font=("Arial", 10), bg="#f4f6f9")
+        desc_label = tk.Label(self.form_frame, text="Description:", font=("Arial", 10, "bold"), bg="#f4f6f9")
         desc_label.grid(row=len(labels), column=0, sticky="ne", padx=10, pady=5)
-        self.desc_text = tk.Text(self.form_frame, width=45, height=5, font=("Arial", 10))
+        self.desc_text = tk.Text(self.form_frame, width=45, height=3, font=("Arial", 10))
         self.desc_text.grid(row=len(labels), column=1, padx=10, pady=5)
 
         # Buttons
@@ -79,7 +79,7 @@ class ExitTypeGeneratorApp:
 
         # Preview area
         tk.Label(root, text="Exit Label Preview:", font=("Arial", 11, "bold"), bg="#f4f6f9").pack(pady=(10, 0))
-        self.preview_text = tk.Text(root, height=10, width=70, font=("Courier New", 10))
+        self.preview_text = tk.Text(root, height=10, width=70, font=("Arial", 10))
         self.preview_text.pack(padx=10, pady=5)
 
     def clear_fields(self):
@@ -131,20 +131,20 @@ class ExitTypeGeneratorApp:
         c.setFont("Verdana", 10)
 
         field_positions = {
-            "Inspection No": (4.7 * inch, height - 1.43 * inch),
-            "Exporter": (-0.89 * inch, height - 2.1 * inch),
-            "Inspection Date": (4.6 * inch, height - 2.1 * inch),
-            "Bill No": (-1.3 * inch, height - 3.08 * inch),
-            "BOE Date": (1.65 * inch, height - 3.08 * inch),
-            "Air way Bill NO": (4.05 * inch, height - 3.08 * inch),
-            "Country of Origin": (-1.2 * inch, height - 3.75 * inch),
-            "Point of Exit": (1.4 * inch, height - 3.75 * inch),
-            "Destination": (4.35 * inch, height - 3.75 * inch),
-            "Quantity": (-1.5 * inch, height - 5.5 * inch),
-            "Total Quantity": (-0.87 * inch, height - 7.25 * inch),
-            "Total Weight": (1.7 * inch, height - 7.25 * inch),
-            "Container/Vehicle No": (-1.2 * inch, height - 8.1 * inch),
-            "Custom Seal NO": (1.7 * inch, height - 8.1 * inch),
+            "Inspection No": (4.7 * inch, height - 1.6 * inch),
+            "Exporter": (-0.9 * inch, height - 2.16 * inch),
+            "Inspection Date": (4.6 * inch, height - 2.2 * inch),
+            "Bill No": (-1.3 * inch, height - 3.13 * inch),
+            "BOE Date": (1.7 * inch, height - 3.2 * inch),
+            "Air way Bill NO": (4.05 * inch, height - 3.25 * inch),
+            "Country of Origin": (-1.2 * inch, height - 3.9 * inch),
+            "Point of Exit": (1.45 * inch, height - 3.9 * inch),
+            "Destination": (4.35 * inch, height - 3.9 * inch),
+            "Quantity": (-1.55 * inch, height - 5.5 * inch),
+            "Total Quantity": (-0.9 * inch, height - 7.35 * inch),
+            "Total Weight": (1.7 * inch, height - 7.38 * inch),
+            "Container/Vehicle No": (-1.2 * inch, height - 8.23 * inch),
+            "Custom Seal NO": (1.7 * inch, height - 8.23 * inch),
         }
 
         # Draw fields
@@ -163,7 +163,7 @@ class ExitTypeGeneratorApp:
 
         # Description block
         desc_x = 1 * inch
-        desc_y = height - 4.8 * inch
+        desc_y = height - 4.9 * inch
         # c.drawString(desc_x, desc_y, "Description:")
         # c.setFont("Verdana-Bold", 10)
 
@@ -172,7 +172,7 @@ class ExitTypeGeneratorApp:
 
         y_offset = desc_y - 0.3 * inch
         for line in desc_lines:
-            c.drawString(desc_x + 1.1 * inch, y_offset, line)
+            c.drawString(desc_x + 1 * inch, y_offset, line)
             y_offset -= 0.25 * inch
 
         c.save()
