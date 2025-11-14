@@ -1,0 +1,40 @@
+END USER LICENSE AGREEMENT (EULA)
+
+IMPORTANT: PLEASE READ THIS AGREEMENT CAREFULLY BEFORE USING THIS SOFTWARE.
+
+This End User License Agreement ("Agreement") is a legal contract between you
+(the "User") and the Developer/Owner of this software (the "Software").
+
+By installing, copying, or using the Software, you agree to be bound by the
+terms of this Agreement.
+
+1. LICENSE GRANT
+The Developer grants you a non-exclusive, non-transferable license to install
+and use this Software for personal or business purposes.
+
+2. OWNERSHIP
+This Software is licensed, not sold. All rights, title, and interest in the
+Software remain with the Developer.
+
+3. RESTRICTIONS
+You may NOT:
+- Modify, decompile, reverse engineer, or attempt to access the source code.
+- Sell, distribute, or sublicense the Software without permission.
+- Use the Software for any illegal, harmful, or unauthorized purpose.
+
+4. DISCLAIMER OF WARRANTY
+This Software is provided “AS IS,” without warranty of any kind. The Developer
+does not guarantee reliability, accuracy, or suitability for any purpose.
+
+5. LIMITATION OF LIABILITY
+In no event shall the Developer be liable for any damages, including but not
+limited to data loss, business interruption, or financial losses.
+
+6. TERMINATION
+This Agreement is effective until terminated. Your rights automatically
+terminate if you fail to comply with any part of this Agreement.
+
+By using this Software, you acknowledge that you have read, understood, and
+agree to the terms of this EULA.
+
+© 2025 All Rights Reserved.

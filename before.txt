@@ -1,0 +1,14 @@
+
+
+WELCOME TO THE INSTALLATION SETUP
+Thank you for choosing My ExitType v1.0.
+
+This wizard will guide you through the installation of this software.
+
+Before proceeding, please ensure the following:
+
+• Close any applications that may interfere with installation.
+• Make sure you have administrative privileges on this computer.
+• Save your work to avoid any data loss.
+
+Click “Next” to continue.

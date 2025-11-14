@@ -1,0 +1,10 @@
+INSTALLATION COMPLETED SUCCESSFULLY
+
+Thank you for installing this software!
+
+You may now launch the application from the desktop shortcut or Start Menu.
+
+If you encounter any issues or need support, please contact:
+support@example.com
+
+We hope you enjoy using the software.
