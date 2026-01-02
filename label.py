@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
+from tkinter import ttk
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
@@ -62,7 +63,7 @@ class ToolTip(object):
 #         base_path = sys._MEIPASS
 #     except Exception:
 #         base_path = os.path.abspath(".")
-
+# 
 #     return os.path.join(base_path, relative_path)
 
 def resource_path(relative_path):
@@ -84,33 +85,94 @@ class ExitTypeGeneratorApp:
 
     
 
-
     def __init__(self, root):
-            # Load icon once (important!)
-        self.icon_save = ImageTk.PhotoImage(
-            Image.open(resource_path("icons/save.png")).resize((28, 28), Image.LANCZOS)
-        )
-        self.icon_saveas = ImageTk.PhotoImage(
-            Image.open(resource_path("icons/saveas.png")).resize((28, 28), Image.LANCZOS)
-        )
-        self.icon_clear = ImageTk.PhotoImage(
-            Image.open(resource_path("icons/clear.png")).resize((28, 28), Image.LANCZOS)
-        )
-        self.icon_load = ImageTk.PhotoImage(
-            Image.open(resource_path("icons/add.png")).resize((28, 28), Image.LANCZOS)
-        )
-        self.icon_print = ImageTk.PhotoImage(
-            Image.open(resource_path("icons/print.png")).resize((28, 28), Image.LANCZOS)
-        )
+        # Load messages or state
         self.root = root
         self.root.title("Exit Type Generator")
-        self.root.geometry("800x880")
-        self.root.configure(bg="#f4f6f9")
+        self.root.geometry("1100x880")
+        
+        # Configure style
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Professional Colors
+        bg_main = "#eaeff2"       # Soft bluish-gray background
+        bg_card = "#ffffff"       # White card
+        accent = "#3498db"        # Primary Blue
+        accent_hover = "#2980b9"
+        text_primary = "#2c3e50"  # Dark Slate
+        text_secondary = "#7f8c8d" # Gray
+        
+        self.root.configure(bg=bg_main)
+        
+        # Style Definitions
+        style.configure("Main.TFrame", background=bg_main)
+        style.configure("Card.TFrame", background=bg_card, relief="flat")
+        
+        # Labels
+        style.configure("CardLabel.TLabel", background=bg_card, foreground=text_secondary, font=("Segoe UI Semibold", 9))
+        style.configure("Header.TLabel", background=bg_main, foreground=text_primary, font=("Segoe UI", 18, "bold"))
+        
+        # Entries
+        style.configure("Card.TEntry", fieldbackground="#f8f9fa", padding=8, borderwidth=1, relief="solid")
+        style.map("Card.TEntry", bordercolor=[("focus", accent)])
+        
+        # Buttons
+        style.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), background=accent, foreground="white", padding=8)
+        style.map("Primary.TButton", background=[("active", accent_hover)])
+        
+        style.configure("Secondary.TButton", font=("Segoe UI", 10), background="#ecf0f1", foreground=text_primary, padding=6)
+
+        # === Scrollable Container ===
+        # 1. Main Canvas
+        self.canvas = tk.Canvas(root, borderwidth=0, background=bg_main, highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
+        
+        # 2. Scrollable Frame
+        self.scrollable_frame = ttk.Frame(self.canvas, style="Main.TFrame")
+        
+        # 3. Configure scrolling
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="n") # Anchor North for centering
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        
+        # 4. Pack
+        self.scrollbar.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+
+        # Make the scrollable frame fill the canvas width
+        self.frame_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        
+        def _configure_frame_width(event):
+            # Update the width of the frame to match the canvas
+            canvas_width = event.width
+            self.canvas.itemconfig(self.frame_id, width=canvas_width)
+            
+        self.canvas.bind("<Configure>", _configure_frame_width)
+
+        # Load Icons
+        try:
+            self.icon_save = ImageTk.PhotoImage(Image.open(resource_path("icons/save.png")).resize((24, 24), Image.LANCZOS))
+            self.icon_saveas = ImageTk.PhotoImage(Image.open(resource_path("icons/saveas.png")).resize((24, 24), Image.LANCZOS))
+            self.icon_clear = ImageTk.PhotoImage(Image.open(resource_path("icons/clear.png")).resize((24, 24), Image.LANCZOS))
+            self.icon_load = ImageTk.PhotoImage(Image.open(resource_path("icons/add.png")).resize((24, 24), Image.LANCZOS))
+            self.icon_print = ImageTk.PhotoImage(Image.open(resource_path("icons/print.png")).resize((24, 24), Image.LANCZOS))
+        except Exception:
+            # Fallback if icons missing
+            self.icon_save = None
+            self.icon_saveas = None
+            self.icon_clear = None
+            self.icon_load = None
+            self.icon_print = None
 
         # Track last created PDF path (for printing)
         self.last_pdf_path = None
 
-        # Load settings (offsets + folder + filename base)
+        # Load settings
         (
             self.offset_x,
             self.offset_y,
@@ -118,282 +180,309 @@ class ExitTypeGeneratorApp:
             self.filename_base,
         ) = self.load_settings()
 
-        # Register Verdana fonts (use fallback if not present)
+        # Register Fonts
         try:
             verdana_path = "C:\\Windows\\Fonts\\verdana.ttf"
             verdana_bold_path = "C:\\Windows\\Fonts\\verdanab.ttf"
             pdfmetrics.registerFont(TTFont("Verdana", verdana_path))
             pdfmetrics.registerFont(TTFont("Verdana-Bold", verdana_bold_path))
         except Exception:
-            # If Verdana not found, register a standard font (ReportLab default)
             pass
 
-        # Try setting icon
+        # Try setting window icon
         try:
-            # self.root.iconbitmap("exittype.ico")
             icon_path = resource_path("exittype.ico")
             self.root.iconbitmap(icon_path)
+        except Exception:
+            pass
 
-            # base_path = sys._MEIPASS  # PyInstaller temp folder
-        except tk.TclError:
-            print("Icon not found, using default")
+        # === Header ===
+        # Removed to save space per user request
+        # header_frame = ttk.Frame(self.scrollable_frame, style="Main.TFrame")
+        # header_frame.pack(pady=(30, 20))
+        # ttk.Label(header_frame, text="Exit Type Generator", style="Header.TLabel").pack()
 
-        # Title
-        tk.Label(
-            root,
-            text="Exit Type Generator",
-            font=("Arial", 18, "bold"),
-            bg="#2e86de",
-            fg="white",
-            pady=10,
-        ).pack(fill=tk.X)
+        # === THE CARD (Main Content) ===
+        # A centered white card that fills most of the width
+        self.card = tk.Frame(self.scrollable_frame, bg="#ffffff", padx=30, pady=30, relief="solid", bd=1)
+        self.card.configure(highlightbackground="#dcdde1", highlightthickness=1)
+        self.card.pack(padx=40, pady=(0, 30), ipadx=10, ipady=10, fill=tk.X, expand=True)
 
-        # Top controls: Alignment / Folder
-        top_frame = tk.Frame(root, bg="#f4f6f9")
-        top_frame.pack(fill=tk.X, pady=6)
-
-        tk.Button(
-            top_frame,
-            text="Adjust Alignment (X/Y)",
-            command=self.open_alignment_window,
-            bg="#8e44ad",
-            fg="white",
-            font=("Arial", 11, "bold"),
-            padx=8,
-            pady=5,
-        ).pack(side=tk.LEFT, padx=8)
-
-        # Folder display + choose
-        folder_frame = tk.Frame(top_frame, bg="#f4f6f9")
-        folder_frame.pack(side=tk.RIGHT, padx=8)
-
-        tk.Label(folder_frame, text="Save Folder:", bg="#f4f6f9").grid(row=0, column=0, sticky="e")
+        # 1. Controls (Settings)
+        # Use a grid layout for the controls
+        controls_frame = tk.Frame(self.card, bg="#ffffff")
+        controls_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        # Alignment
+        align_btn = ttk.Button(controls_frame, text="⚙ Alignment", command=self.open_alignment_window, style="Secondary.TButton")
+        align_btn.pack(side=tk.LEFT)
+        
+        # Folder
+        folder_frame = tk.Frame(controls_frame, bg="#ffffff")
+        folder_frame.pack(side=tk.RIGHT)
+        ttk.Label(folder_frame, text="Save Folder:", style="CardLabel.TLabel").pack(side=tk.LEFT, padx=(10, 5))
         self.folder_var = tk.StringVar(value=self.default_folder or "")
-        self.folder_entry = tk.Entry(folder_frame, textvariable=self.folder_var, width=48)
-        self.folder_entry.grid(row=0, column=1, padx=6)
-        tk.Button(folder_frame, text="Choose Folder", command=self.choose_folder).grid(row=0, column=2, padx=6)
+        ttk.Entry(folder_frame, textvariable=self.folder_var, width=25, style="Card.TEntry").pack(side=tk.LEFT)
+        ttk.Button(folder_frame, text="Browse", command=self.choose_folder, style="Secondary.TButton").pack(side=tk.LEFT, padx=5)
 
-        # Filename base (auto 'exit' by your choice)
-        fname_frame = tk.Frame(root, bg="#f4f6f9")
-        fname_frame.pack(fill=tk.X, pady=(0, 6))
-        tk.Label(fname_frame, text="Filename base:", bg="#f4f6f9").pack(side=tk.LEFT, padx=(12, 4))
+        # Filename
+        fname_frame = tk.Frame(self.card, bg="#ffffff")
+        fname_frame.pack(fill=tk.X, pady=(0, 20))
+        ttk.Label(fname_frame, text="Filename Base:", style="CardLabel.TLabel").pack(side=tk.LEFT, padx=(0, 5))
         self.filename_base_var = tk.StringVar(value=self.filename_base or "exit")
-        self.filename_base_entry = tk.Entry(fname_frame, textvariable=self.filename_base_var, width=20)
-        self.filename_base_entry.pack(side=tk.LEFT)
+        ttk.Entry(fname_frame, textvariable=self.filename_base_var, width=20, style="Card.TEntry").pack(side=tk.LEFT)
+        ttk.Button(fname_frame, text="Save Settings", command=self.save_all_settings, style="Secondary.TButton").pack(side=tk.LEFT, padx=10)
 
-        # Save settings button (saves offsets + folder + filename base)
-        tk.Button(
-            fname_frame,
-            text="Save Settings",
-            command=self.save_all_settings,
-            bg="#27ae60",
-            fg="white",
-            font=("Arial", 10, "bold"),
-            padx=8,
-            pady=3,
-        ).pack(side=tk.LEFT, padx=12)
+        ttk.Separator(self.card, orient="horizontal").pack(fill=tk.X, pady=10)
+
+        # 2. Form Fields (Grid Layout - 6 Columns)
+        self.form_frame = tk.Frame(self.card, bg="#ffffff")
+        self.form_frame.pack(fill=tk.X, pady=10)
         
+        # Configure columns to expand (6 possible slots for flexibility)
+        for c in range(6):
+            self.form_frame.columnconfigure(c, weight=1)
 
-        # Form
-        self.form_frame = tk.Frame(root, bg="#f4f6f9")
-        self.form_frame.pack(pady=8)
-
-        labels = [
-            "Inspection No",
-            "Exporter",
-            "Inspection Date",
-            "Bill No",
-            "BOE Date",
-            "Air way Bill NO",
-            "Country of Origin",
-            "Point of Exit",
-            "Destination",
-            "Quantity",
-            "Total Quantity",
-            "Total Weight",
-            "Container/Vehicle No",
-            "Custom Seal NO",
+        # Define Layout: List of Rows, where each Row is a list of (Label, ColumnSpan)
+        layout_rows = [
+            # Row 1: Inspection details (2 items -> span 3 each)
+            [("Inspection No", 3), ("Inspection Date", 3)],
+            
+            # Row 2: Exporter (Wide -> span 6)
+            [("Exporter", 6)],
+            
+            # Row 3: Bill No, BOE Date, AWB (User Req: 3 items -> span 2 each)
+            [("Bill No", 2), ("BOE Date", 2), ("Air way Bill NO", 2)],
+            
+            # Row 4: COO, Point of Exit, Destination (User Req: 3 items -> span 2 each)
+            [("Country of Origin", 2), ("Point of Exit", 2), ("Destination", 2)],
+            
+            # Row 5: Quantity (5%) + Description (95%)
+            [("Quantity|Description", 6)],
+            
+            # Row 6: All Logistics (Total Q, Weight, Container, Seal)
+            [("Final_Row_Group", 6)],
         ]
-
-        self.entries = {}
-
-        for i, label_text in enumerate(labels):
-            tk.Label(
-                self.form_frame,
-                text=label_text + ":",
-                font=("Arial", 10, "bold"),
-                bg="#f4f6f9",
-            ).grid(row=i, column=0, sticky="e", padx=10, pady=5)
-
-            if label_text in ["Exporter", "Bill No", "Quantity", "Total Quantity", "Country of Origin", "Air way Bill NO"]:
-                entry = tk.Text(self.form_frame, width=50, height=2, font=("Arial", 11, "bold"))
-            else:
-                entry = tk.Entry(self.form_frame, width=50, font=("Arial", 11, "bold"))
-
-            entry.grid(row=i, column=1, padx=10, pady=5)
-            self.entries[label_text] = entry
-
-        # Description
-        tk.Label(
-            self.form_frame,
-            text="Description:",
-            font=("Arial", 10, "bold"),
-            bg="#f4f6f9",
-        ).grid(row=len(labels), column=0, sticky="ne", padx=10, pady=5)
-        self.desc_text = tk.Text(self.form_frame, width=50, height=3, font=("Arial", 11, "bold"))
-        self.desc_text.grid(row=len(labels), column=1, padx=10, pady=5)
-
-        # Buttons
-        btn_frame = tk.Frame(root, bg="#f4f6f9")
-        btn_frame.pack(pady=10)
-
-        # tk.Button(
-        #     btn_frame,
-        #     text="Generate PDF (Auto-save)",
-        #     command=self.generate_pdf_label,
-        #     bg="#27ae60",
-        #     fg="white",
-        #     font=("Arial", 11, "bold"),
-        #     padx=15,
-        #     pady=5,
-        # ).grid(row=0, column=0, padx=10)
-        # tk.Button(
-        #     btn_frame,
-        #     image=self.icon_generate,
-        #     command=self.generate_pdf_label,
-        #     bg="#27ae60",
-        #     bd=0,
-        #     activebackground="#27ae60",
-        #     padx=10,
-        #     pady=10
-        # ).grid(row=0, column=0, padx=10)
-        generate_btn = tk.Button(
-            btn_frame,
-            image=self.icon_save,
-            command=self.generate_pdf_label,
-            bg="#e2e9e5",
-            activebackground="#27ae60",
-            bd=0,
-            padx=10,
-            pady=10,
-        )
-        generate_btn.grid(row=0, column=0, padx=10)
-
-        # Add tooltip here
-        ToolTip(generate_btn, "Generate PDF")
-
-
-
-        # tk.Button(
-        #     btn_frame,
-        #     text="Generate PDF (Save As...)",
-        #     command=self.generate_pdf_label_saveas,
-        #     bg="#2980b9",
-        #     fg="white",
-        #     font=("Arial", 11, "bold"),
-        #     padx=15,
-        #     pady=5,
-        # ).grid(row=0, column=1, padx=10)
-        saveas_btn = tk.Button(
-            btn_frame,
-            image=self.icon_saveas,
-            command=self.generate_pdf_label_saveas,
-            bg="#e0e0e0",
-            activebackground="#27ae60",
-            bd=0,
-            padx=10,
-            pady=10,
-        )
-        saveas_btn.grid(row=0, column=1, padx=10)
-
-        # Add tooltip here
-        ToolTip(saveas_btn, "Save As")
         
+        self.entries = {}
+        
+        current_row = 0
+        
+        for row_items in layout_rows:
+            current_col = 0
+            for label_text, span in row_items:
+                
+                # Special Case 1: Quantity + Description (5% / 95%)
+                if label_text == "Quantity|Description":
+                    # Create a nested frame
+                    group_frame = tk.Frame(self.form_frame, bg="#ffffff")
+                    group_frame.grid(row=current_row, column=0, columnspan=6, sticky="ew", padx=10, pady=8)
+                    
+                    group_frame.columnconfigure(0, weight=1)  # 5%
+                    group_frame.columnconfigure(1, weight=20) # 95%
+                    
+                    # Qty
+                    qty_container = tk.Frame(group_frame, bg="#ffffff")
+                    qty_container.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+                    ttk.Label(qty_container, text="Quantity", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                    qty_entry = tk.Text(
+                        qty_container, height=4, width=5, 
+                        font=("Segoe UI", 10), relief="solid", bd=1,
+                        highlightthickness=1, highlightcolor="#3498db", highlightbackground="#dcdde1",
+                        bg="#f8f9fa",
+                        undo=True, maxundo=-1
+                    )
+                    qty_entry.bind("<Tab>", self.focus_next_window)
+                    qty_entry.pack(fill=tk.X)
+                    self.entries["Quantity"] = qty_entry
 
-        # tk.Button(
-        #     btn_frame,
-        #     text="Clear All",
-        #     command=self.clear_fields,
-        #     bg="#c0392b",
-        #     fg="white",
-        #     font=("Arial", 11, "bold"),
-        #     padx=15,
-        #     pady=5,
-        # ).grid(row=0, column=2, padx=10)
+                    # Desc
+                    desc_container = tk.Frame(group_frame, bg="#ffffff")
+                    desc_container.grid(row=0, column=1, sticky="ew")
+                    ttk.Label(desc_container, text="Description", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                    desc_entry = tk.Text(
+                        desc_container, height=4, width=30, 
+                        font=("Segoe UI", 10), relief="solid", bd=1,
+                        highlightthickness=1, highlightcolor="#3498db", highlightbackground="#dcdde1",
+                        bg="#f8f9fa",
+                        undo=True, maxundo=-1
+                    )
+                    desc_entry.bind("<Tab>", self.focus_next_window)
+                    desc_entry.pack(fill=tk.X)
+                    self.entries["Description"] = desc_entry
+                    self.desc_text = desc_entry 
+                    
+                    continue
 
-        clear_btn = tk.Button(
-            btn_frame,
-            image=self.icon_clear,
-            command=self.clear_fields,
-            bg="#e0e0e0",
-            activebackground="#27ae60",
-            bd=0,
-            padx=10,
-            pady=10,
+                # Special Case 2: Final Row (Total Q | Weight | Container | Seal)
+                if label_text == "Final_Row_Group":
+                    # Nested frame
+                    fin_frame = tk.Frame(self.form_frame, bg="#ffffff")
+                    fin_frame.grid(row=current_row, column=0, columnspan=6, sticky="ew", padx=10, pady=8)
+                    
+                    # Distribution: Qty(2), Weight(1), Cont(4), Seal(2)
+                    # Total 9 shares.
+                    # Weight ~ 11%
+                    fin_frame.columnconfigure(0, weight=2)
+                    fin_frame.columnconfigure(1, weight=1)
+                    fin_frame.columnconfigure(2, weight=4)
+                    fin_frame.columnconfigure(3, weight=2)
+                    
+                    # 1. Total Quantity
+                    tq_cont = tk.Frame(fin_frame, bg="#ffffff")
+                    tq_cont.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+                    ttk.Label(tq_cont, text="Total Quantity", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                    tq_entry = tk.Text(tq_cont, height=2, width=15, font=("Segoe UI", 10), relief="solid", bd=1, 
+                        highlightthickness=1, highlightcolor="#3498db", highlightbackground="#dcdde1", 
+                        bg="#f8f9fa",
+                        undo=True, maxundo=-1)
+                    tq_entry.bind("<Tab>", self.focus_next_window)
+                    tq_entry.pack(fill=tk.X)
+                    self.entries["Total Quantity"] = tq_entry
+
+                    # 2. Total Weight
+                    tw_cont = tk.Frame(fin_frame, bg="#ffffff")
+                    tw_cont.grid(row=0, column=1, sticky="ew", padx=(0, 10))
+                    ttk.Label(tw_cont, text="Total Weight", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                    tw_entry = ttk.Entry(tw_cont, style="Card.TEntry", width=10)
+                    tw_entry.pack(fill=tk.X)
+                    self.entries["Total Weight"] = tw_entry
+                    
+                    # 3. Container
+                    c_cont = tk.Frame(fin_frame, bg="#ffffff")
+                    c_cont.grid(row=0, column=2, sticky="ew", padx=(0, 10))
+                    ttk.Label(c_cont, text="Container/Vehicle No", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                    c_entry = ttk.Entry(c_cont, style="Card.TEntry", width=20)
+                    c_entry.pack(fill=tk.X)
+                    self.entries["Container/Vehicle No"] = c_entry
+                    
+                    # 4. Seal
+                    s_cont = tk.Frame(fin_frame, bg="#ffffff")
+                    s_cont.grid(row=0, column=3, sticky="ew")
+                    ttk.Label(s_cont, text="Custom Seal NO", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                    s_entry = ttk.Entry(s_cont, style="Card.TEntry", width=15)
+                    s_entry.pack(fill=tk.X)
+                    self.entries["Custom Seal NO"] = s_entry
+                    
+                    continue
+
+                # Standard Processing for other fields
+                # Container for the field
+                field_container = tk.Frame(self.form_frame, bg="#ffffff")
+                field_container.grid(row=current_row, column=current_col, columnspan=span, sticky="ew", padx=10, pady=8)
+                
+                # Update column pointer
+                current_col += span
+
+                # Determine Widget Type
+                is_multiline = label_text in ["Exporter", "Bill No", "Quantity", "Total Quantity", "Country of Origin", "Air way Bill NO"]
+                
+                # Label (Top)
+                ttk.Label(field_container, text=label_text, style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
+                
+                # Input (Bottom)
+                if is_multiline:
+                    entry = tk.Text(
+                        field_container, 
+                        height=2, 
+                        width=30, 
+                        font=("Segoe UI", 10), 
+                        relief="solid", bd=1,
+                        highlightthickness=1,
+                        highlightcolor="#3498db",
+                        highlightbackground="#dcdde1",
+                        bg="#f8f9fa",
+                        undo=True, maxundo=-1
+                    )
+                    entry.bind("<Tab>", self.focus_next_window)
+                    entry.pack(fill=tk.X)
+                else:
+                    entry = ttk.Entry(field_container, style="Card.TEntry", width=15)
+                    entry.pack(fill=tk.X)
+                
+                self.entries[label_text] = entry
+            
+            # Move to next row
+            current_row += 1
+        
+        # Description was moved into the loop above.
+
+        # 3. Footer Actions (Floating or Sticky)
+        # We put them inside the card at bottom
+        ttk.Separator(self.card, orient="horizontal").pack(fill=tk.X, pady=20)
+        
+        action_frame = tk.Frame(self.card, bg="#ffffff")
+        action_frame.pack(fill=tk.X)
+        
+        # Primary Action
+        gen_btn = ttk.Button(action_frame, text="GENERATE PDF", command=self.generate_pdf_label, style="Primary.TButton")
+        gen_btn.pack(side=tk.RIGHT, padx=5)
+        
+        # Secondary Actions
+        ttk.Button(action_frame, text="Save As...", command=self.generate_pdf_label_saveas, style="Secondary.TButton").pack(side=tk.RIGHT, padx=5)
+        ttk.Button(action_frame, text="Open PDF", command=self.open_last_pdf_file, style="Secondary.TButton").pack(side=tk.RIGHT, padx=5)
+        ttk.Button(action_frame, text="Print", command=self.print_last_pdf, style="Secondary.TButton").pack(side=tk.RIGHT, padx=5)
+        ttk.Button(action_frame, text="Load", command=self.load_old_document, style="Secondary.TButton").pack(side=tk.RIGHT, padx=5)
+        
+        # Clear (Left side)
+        ttk.Button(action_frame, text="Clear Form", command=self.clear_fields, style="Secondary.TButton").pack(side=tk.LEFT, padx=0)
+
+        # === Preview ===
+        ttk.Label(self.scrollable_frame, text="Preview Data:", style="CardLabel.TLabel").pack(pady=(20, 5))
+        self.preview_text = tk.Text(
+            self.scrollable_frame, 
+            height=6, 
+            width=85, 
+            font=("Consolas", 8), 
+            relief="solid", bd=1,
+            highlightthickness=1,
+            highlightcolor="#3498db",
+            highlightbackground="#dcdde1",
+            bg="#f8f9fa", 
+            fg="#2c3e50"
         )
-        clear_btn.grid(row=0, column=2, padx=10)
-
-        # Add tooltip here
-        ToolTip(clear_btn, "Clear ALL")
-
-        # New: Load old doc and print buttons
-        # tk.Button(
-        #     btn_frame,
-        #     text="Load Old Document",
-        #     command=self.load_old_document,
-        #     bg="#8e44ad",
-        #     fg="white",
-        #     font=("Arial", 11, "bold"),
-        #     padx=15,
-        #     pady=5,
-        # ).grid(row=0, column=3, padx=10)
-
-        load_btn = tk.Button(
-            btn_frame,
-            image=self.icon_load,
-            command=self.load_old_document,
-            bg="#e0e0e0",
-            activebackground="#27ae60",
-            bd=0,
-            padx=10,
-            pady=10,
-        )
-        load_btn.grid(row=0, column=3, padx=10)
-
-        # Add tooltip here
-        ToolTip(load_btn, "Load Old Document")
+        self.preview_text.pack(padx=20, pady=5)
 
 
-        # tk.Button(
-        #     btn_frame,
-        #     text="Print PDF",
-        #     command=self.print_last_pdf,
-        #     bg="#16a085",
-        #     fg="white",
-        #     font=("Arial", 11, "bold"),
-        #     padx=15,
-        #     pady=5,
-        # ).grid(row=0, column=4, padx=10)
+    def _on_mousewheel(self, event):
+        """Enable mousewheel scrolling."""
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
-        print_btn = tk.Button(
-            btn_frame,
-            image=self.icon_print,
-            command=self.print_last_pdf,
-            bg="#e0e0e0",
-            activebackground="#27ae60",
-            bd=0,
-            padx=10,
-            pady=10,
-        )
-        print_btn.grid(row=0, column=4, padx=10)
+    def focus_next_window(self, event):
+        """Handle Tab key to move focus to next widget."""
+        event.widget.tk_focusNext().focus()
+        return "break"
 
-        # Add tooltip here
-        ToolTip(print_btn, "print_last_pdf")
+    def show_toast(self, message, duration=3000):
+        """Show a temporary notification (toast)."""
+        toast = tk.Toplevel(self.root)
+        toast.wm_overrideredirect(True)
+        
+        # Position
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 100
+        y = self.root.winfo_y() + self.root.winfo_height() - 100
+        toast.geometry(f"200x50+{x}+{y}")
+        
+        # Style
+        toast.configure(bg="#2d3436", relief="solid", bd=1)
+        label = tk.Label(toast, text=message, bg="#2d3436", fg="white", font=("Segoe UI", 10))
+        label.pack(expand=True, fill="both")
+        
+        # Close after duration
+        toast.after(duration, toast.destroy)
 
-        # Preview
-        tk.Label(root, text="Exit Label Preview:", font=("Arial", 11, "bold"), bg="#f4f6f9").pack(pady=(10, 0))
-        self.preview_text = tk.Text(root, height=10, width=90, font=("Arial", 10))
-        self.preview_text.pack(padx=10, pady=5)
+    def open_last_pdf_file(self):
+        """Open the last generated PDF."""
+        if not self.last_pdf_path or not os.path.exists(self.last_pdf_path):
+            messagebox.showwarning("Open PDF", "No PDF file found to open.")
+            return
+        
+        try:
+            os.startfile(self.last_pdf_path)
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not open file: {e}")
+
+
 
     # -------------------------
     # Settings (load/save)
@@ -560,10 +649,11 @@ class ExitTypeGeneratorApp:
             self.filename_base = self.filename_base_var.get() or self.filename_base
             self.save_settings_to_file()
 
-            # store last pdf for printing
+            # store last pdf for printing/opening
             self.last_pdf_path = fullpath
 
-            messagebox.showinfo("Success", f"PDF saved to:\n{fullpath}")
+            self.show_toast("PDF Generated Successfully!")
+            
         except Exception as e:
             messagebox.showerror("Error", f"Failed to create PDF: {e}")
 
@@ -613,10 +703,11 @@ class ExitTypeGeneratorApp:
             self.filename_base = self.filename_base_var.get() or self.filename_base
             self.save_settings_to_file()
 
-            # store last pdf for printing
+            # store last pdf for printing/opening
             self.last_pdf_path = save_path
 
-            messagebox.showinfo("Success", f"PDF saved to:\n{save_path}")
+            self.show_toast("PDF Saved Successfully!")
+            
         except Exception as e:
             messagebox.showerror("Error", f"Failed to create PDF: {e}")
 
@@ -734,7 +825,7 @@ class ExitTypeGeneratorApp:
             if not self.last_pdf_path:
                 messagebox.showerror("Error", "No PDF available to print. Create or load a document first.")
                 return
-
+            
             if not os.path.exists(self.last_pdf_path):
                 messagebox.showerror("Error", "PDF file not found. Please regenerate or load a document.")
                 return
