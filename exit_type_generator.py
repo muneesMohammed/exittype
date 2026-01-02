@@ -114,7 +114,7 @@ class ExitTypeGeneratorApp:
         style.configure("Header.TLabel", background=bg_main, foreground=text_primary, font=("Segoe UI", 18, "bold"))
         
         # Entries
-        style.configure("Card.TEntry", fieldbackground="#f8f9fa", padding=8, borderwidth=1, relief="solid")
+        style.configure("Card.TEntry", fieldbackground="#f8f9fa", padding=8, borderwidth=1, relief="solid", bordercolor="#dcdde1")
         style.map("Card.TEntry", bordercolor=[("focus", accent)])
         
         # Buttons
@@ -287,7 +287,8 @@ class ExitTypeGeneratorApp:
                     ttk.Label(qty_container, text="Quantity", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
                     qty_entry = tk.Text(
                         qty_container, height=4, width=5, 
-                        font=("Segoe UI", 10), relief="solid", bd=1,
+                        font=("Segoe UI", 10), 
+                        relief="flat", bd=0,
                         highlightthickness=1, highlightcolor="#3498db", highlightbackground="#dcdde1",
                         bg="#f8f9fa",
                         undo=True, maxundo=-1
@@ -302,7 +303,8 @@ class ExitTypeGeneratorApp:
                     ttk.Label(desc_container, text="Description", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
                     desc_entry = tk.Text(
                         desc_container, height=4, width=30, 
-                        font=("Segoe UI", 10), relief="solid", bd=1,
+                        font=("Segoe UI", 10), 
+                        relief="flat", bd=0,
                         highlightthickness=1, highlightcolor="#3498db", highlightbackground="#dcdde1",
                         bg="#f8f9fa",
                         undo=True, maxundo=-1
@@ -332,7 +334,8 @@ class ExitTypeGeneratorApp:
                     tq_cont = tk.Frame(fin_frame, bg="#ffffff")
                     tq_cont.grid(row=0, column=0, sticky="ew", padx=(0, 10))
                     ttk.Label(tq_cont, text="Total Quantity", style="CardLabel.TLabel").pack(anchor="w", pady=(0, 4))
-                    tq_entry = tk.Text(tq_cont, height=2, width=15, font=("Segoe UI", 10), relief="solid", bd=1, 
+                    tq_entry = tk.Text(tq_cont, height=2, width=15, font=("Segoe UI", 10), 
+                        relief="flat", bd=0, 
                         highlightthickness=1, highlightcolor="#3498db", highlightbackground="#dcdde1", 
                         bg="#f8f9fa",
                         undo=True, maxundo=-1)
@@ -387,7 +390,7 @@ class ExitTypeGeneratorApp:
                         height=2, 
                         width=30, 
                         font=("Segoe UI", 10), 
-                        relief="solid", bd=1,
+                        relief="flat", bd=0,
                         highlightthickness=1,
                         highlightcolor="#3498db",
                         highlightbackground="#dcdde1",
@@ -434,7 +437,7 @@ class ExitTypeGeneratorApp:
             height=6, 
             width=85, 
             font=("Consolas", 8), 
-            relief="solid", bd=1,
+            relief="flat", bd=0,
             highlightthickness=1,
             highlightcolor="#3498db",
             highlightbackground="#dcdde1",
