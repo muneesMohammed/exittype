@@ -15,9 +15,11 @@ import subprocess
 import sys
 from PIL import Image, ImageTk
 
-
-
-ALIGNMENT_FILE = "alignment_settings.json"
+APP_CONFIG_DIR = os.path.join(
+    os.getenv("LOCALAPPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Local"),
+    "ExitTypeGenerator"
+)
+ALIGNMENT_FILE = os.path.join(APP_CONFIG_DIR, "alignment_settings.json")
 
 # ------------------- TOOLTIP CLASS -------------------
 class ToolTip(object):
@@ -492,20 +494,24 @@ class ExitTypeGeneratorApp:
     # -------------------------
     def load_settings(self):
         """Load alignment offsets, default folder, and filename base from JSON."""
-        if not os.path.exists(ALIGNMENT_FILE):
-            # Defaults: offsets 0, folder = user's Documents/ExitLabels, filename base 'exit'
-            default_folder = os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels")
-            return 0.0, 0.0, default_folder, "exit"
+        safe_default_folder = os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels")
         try:
-            with open(ALIGNMENT_FILE, "r") as f:
+            os.makedirs(APP_CONFIG_DIR, exist_ok=True)
+        except Exception:
+            pass
+
+        if not os.path.exists(ALIGNMENT_FILE):
+            return 0.0, 0.0, safe_default_folder, "exit"
+        try:
+            with open(ALIGNMENT_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
             ox = float(data.get("offset_x", 0.0))
             oy = float(data.get("offset_y", 0.0))
-            folder = data.get("default_folder", os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels"))
+            folder = data.get("default_folder", safe_default_folder)
             fname = data.get("filename_base", "exit")
             return ox, oy, folder, fname
         except Exception:
-            return 0.0, 0.0, os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels"), "exit"
+            return 0.0, 0.0, safe_default_folder, "exit"
 
     def save_settings_to_file(self):
         """Persist current settings to JSON."""
@@ -515,8 +521,13 @@ class ExitTypeGeneratorApp:
             "default_folder": self.folder_var.get() or self.default_folder,
             "filename_base": self.filename_base_var.get() or "exit",
         }
-        with open(ALIGNMENT_FILE, "w") as f:
-            json.dump(data, f, indent=4)
+        try:
+            os.makedirs(APP_CONFIG_DIR, exist_ok=True)
+            with open(ALIGNMENT_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            # If config save fails, don't break the app. Continue using runtime values.
+            print(f"Warning: could not save settings to {ALIGNMENT_FILE}: {e}")
 
     def save_all_settings(self):
         """Save offsets, folder and filename base from UI into settings file."""
@@ -597,15 +608,18 @@ class ExitTypeGeneratorApp:
 
     def ensure_folder_exists(self, folder_path):
         """Create folder if missing."""
+        safe_default_folder = os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels")
         if not folder_path:
-            # fallback to Documents/ExitLabels
-            folder_path = os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels")
-        if not os.path.exists(folder_path):
+            folder_path = safe_default_folder
+        try:
+            os.makedirs(folder_path, exist_ok=True)
+            return folder_path
+        except Exception as e:
             try:
-                os.makedirs(folder_path, exist_ok=True)
-            except Exception as e:
+                os.makedirs(safe_default_folder, exist_ok=True)
+                return safe_default_folder
+            except Exception:
                 raise IOError(f"Could not create folder '{folder_path}': {e}")
-        return folder_path
 
     def generate_pdf_label(self):
         """Create PDF and auto-save to default folder (no dialog)."""
