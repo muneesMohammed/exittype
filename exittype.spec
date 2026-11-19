@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['label.py'],
+    ['exit_type_generator.py'],
     pathex=[],
     binaries=[],
     datas=[('icons', 'icons')],

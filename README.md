@@ -1,8 +1,20 @@
-pyinstaller --onefile --icon=exittype.ico --name=exittype label.py  -w
+## Build on Windows
 
+Install the application dependencies and PyInstaller:
 
+```powershell
+py -m pip install -r requirements.txt
+py -m pip install pyinstaller
+```
 
-pyinstaller --onefile --windowed --icon=exittype.ico --name=exittype label.py --add-data "icons;icons"
+Build the windowed, single-file application from the project directory:
 
-pyinstaller --onefile --windowed --icon=exittype.ico --name=exittype --add-data "icons;icons" label.py
+```powershell
+py -m PyInstaller --noconfirm exittype.spec
+```
 
+The executable is created at `dist\exittype.exe`.
+
+The app stores settings and, by default, generated PDFs and JSON files in
+`%LOCALAPPDATA%\ExitTypeGenerator`. You can still choose a different output
+folder in the app.

@@ -20,6 +20,10 @@ APP_CONFIG_DIR = os.path.join(
     "ExitTypeGenerator"
 )
 ALIGNMENT_FILE = os.path.join(APP_CONFIG_DIR, "alignment_settings.json")
+DEFAULT_OUTPUT_DIR = os.path.join(APP_CONFIG_DIR, "ExitLabels")
+LEGACY_DEFAULT_OUTPUT_DIR = os.path.join(
+    os.path.expanduser("~"), "Documents", "ExitLabels"
+)
 
 # ------------------- TOOLTIP CLASS -------------------
 class ToolTip(object):
@@ -494,24 +498,29 @@ class ExitTypeGeneratorApp:
     # -------------------------
     def load_settings(self):
         """Load alignment offsets, default folder, and filename base from JSON."""
-        safe_default_folder = os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels")
         try:
             os.makedirs(APP_CONFIG_DIR, exist_ok=True)
         except Exception:
             pass
 
         if not os.path.exists(ALIGNMENT_FILE):
-            return 0.0, 0.0, safe_default_folder, "exit"
+            return 0.0, 0.0, DEFAULT_OUTPUT_DIR, "exit"
         try:
             with open(ALIGNMENT_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
             ox = float(data.get("offset_x", 0.0))
             oy = float(data.get("offset_y", 0.0))
-            folder = data.get("default_folder", safe_default_folder)
+            folder = data.get("default_folder", DEFAULT_OUTPUT_DIR)
+            if (
+                isinstance(folder, str)
+                and os.path.normcase(os.path.abspath(folder))
+                == os.path.normcase(os.path.abspath(LEGACY_DEFAULT_OUTPUT_DIR))
+            ):
+                folder = DEFAULT_OUTPUT_DIR
             fname = data.get("filename_base", "exit")
             return ox, oy, folder, fname
         except Exception:
-            return 0.0, 0.0, safe_default_folder, "exit"
+            return 0.0, 0.0, DEFAULT_OUTPUT_DIR, "exit"
 
     def save_settings_to_file(self):
         """Persist current settings to JSON."""
@@ -608,16 +617,15 @@ class ExitTypeGeneratorApp:
 
     def ensure_folder_exists(self, folder_path):
         """Create folder if missing."""
-        safe_default_folder = os.path.join(os.path.expanduser("~"), "Documents", "ExitLabels")
         if not folder_path:
-            folder_path = safe_default_folder
+            folder_path = DEFAULT_OUTPUT_DIR
         try:
             os.makedirs(folder_path, exist_ok=True)
             return folder_path
         except Exception as e:
             try:
-                os.makedirs(safe_default_folder, exist_ok=True)
-                return safe_default_folder
+                os.makedirs(DEFAULT_OUTPUT_DIR, exist_ok=True)
+                return DEFAULT_OUTPUT_DIR
             except Exception:
                 raise IOError(f"Could not create folder '{folder_path}': {e}")
 
